@@ -22,6 +22,7 @@
   // Generic slider game. cfg: {mode, era, events[], total, hud(state), afterRound(state, res) -> bool continue, finish(state)}
   function runGuess(cfg) {
     const st = { i: 0, score: 0, results: [], budget: cfg.budget };
+    Y.warm(cfg.events.slice(0, Math.min(cfg.events.length, cfg.total || 12)));
     nextRound();
 
     function nextRound() {
@@ -59,7 +60,10 @@
         h('div', { class: 'hint-line' }, 'Tip: type a year on your keyboard, use ← → (Shift = ±10), Enter to lock in')
       );
       const area = h('div', null, picker);
-      Y.show(cfg.hud(st), Y.eventCard(ev), area);
+      const card = Y.eventCard(ev);
+      Y.show(cfg.hud(st), card, area);
+      const upcoming = cfg.events[(st.i + 1) % cfg.events.length];
+      if (upcoming) S.wiki.preload(upcoming.img);
 
       const onKey = (e) => {
         if (e.target && e.target.tagName === 'INPUT' && e.target.type !== 'range') return;
@@ -90,11 +94,11 @@
       lockBtn.addEventListener('click', () => {
         if (locked) return;
         locked = true;
-        reveal(ev, value, area);
+        reveal(ev, value, area, card);
       });
     }
 
-    function reveal(ev, guess, area) {
+    function reveal(ev, guess, area, card) {
       const era = cfg.era;
       const diff = Math.abs(guess - ev.year);
       const pts = Y.points(diff, era.scale);
@@ -129,6 +133,7 @@
       );
       area.innerHTML = '';
       area.append(panel);
+      Y.stamp(card, ev.year, res.grade);
       const hud = document.querySelector('.hud-wrap');
       if (hud) hud.replaceWith(cfg.hud(st));
       requestAnimationFrame(() => requestAnimationFrame(() => {
@@ -188,7 +193,7 @@
     return results.map((r) => Y.GRADE_EMOJI[r.grade]).join('');
   }
 
-  const recapRows = (results) => results.map((r) => ({ ev: r.ev, note: r.diff === 0 ? 'exact!' : 'you: ' + r.guess }));
+  const recapRows = (results) => results.map((r) => ({ ev: r.ev, grade: r.grade, note: r.diff === 0 ? '🎯 exact' : 'you ' + r.guess }));
 
   // ---------- Classic ----------
   Y.modes.classic = {

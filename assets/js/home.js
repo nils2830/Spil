@@ -1,140 +1,118 @@
-/* Home page: game wall, daily strip and profile. */
+/* Home page: hero teaser, fact ticker, dailies, featured banner, game wall and profile. */
 (function () {
   'use strict';
   const S = window.Spil;
   const { h, $ } = S;
 
-  // Sprites: [emoji, x%, y%, size(px), rotate(deg)]
+  // img: Wikipedia titles for the card photo. tint: overlay colours that give each game its identity.
   const GAMES = [
     {
-      id: 'year-classic', href: 'year/?mode=classic', title: 'Guess the Year', label: '19??',
-      desc: 'Ten moments in history. How close can you get?', tags: ['history'],
-      bg: 'linear-gradient(135deg,#ff8a5b,#ff4f81)', best: 'year:classic', unit: 'pts',
-      sprites: [['🚀', 72, 30, 54, -12], ['📻', 26, 34, 42, 10], ['🎸', 52, 58, 46, 8], ['🗽', 86, 66, 40, -6]],
+      href: 'year/?mode=classic', title: 'Guess the Year', label: 'Guess the Year', emoji: '🕰️', img: 'Apollo 11',
+      desc: 'A real photo, a moment in history. How close can you get to the year?', tags: ['history'],
+      tint: 'rgba(120, 20, 60, 0.92)', tint2: 'rgba(255, 93, 143, 0.35)', g: 'linear-gradient(135deg,#ff8a5b,#ff4f81)', best: 'year:classic', unit: 'pts',
     },
     {
-      id: 'year-timeline', href: 'year/?mode=timeline', title: 'Timeline', label: 'Timeline',
-      desc: 'Slot each event into history. Three mistakes and you are out.', tags: ['history'],
-      bg: 'linear-gradient(135deg,#4fb8ff,#5b5bff)', best: 'year:timeline', unit: 'cards',
-      sprites: [['🏛️', 18, 32, 40, -6], ['⚙️', 40, 26, 36, 12], ['💡', 62, 34, 38, -8], ['📱', 84, 28, 38, 6]],
+      href: 'krillion/', title: 'Krillion', label: 'Krillion', emoji: '🦐', badge: 'DAILY', img: 'Antarctic krill|Krill',
+      desc: 'Name the answer nobody else would. Rare answers dive deeper.', tags: ['words'],
+      tint: 'rgba(3, 30, 70, 0.95)', tint2: 'rgba(30, 167, 201, 0.35)', g: 'linear-gradient(180deg,#1aa7c9,#071a3d)', best: 'krillion:endless', unit: 'm', glow: 'rgba(30, 167, 201, 0.45)',
     },
     {
-      id: 'krillion', href: 'krillion/', title: 'Krillion', label: 'Krillion', badge: 'DAILY',
-      desc: 'Think of answers nobody else would. Rare answers dive deeper.', tags: ['words'],
-      bg: 'linear-gradient(180deg,#1aa7c9 0%,#0b4f8a 55%,#071a3d 100%)', best: 'krillion:endless', unit: 'm',
-      sprites: [['🦐', 30, 30, 50, -14], ['🐙', 74, 58, 52, 10], ['🫧', 58, 24, 30, 0], ['🐟', 20, 66, 36, 8]],
+      href: 'noillirk/', title: 'Noillirk', label: 'Noillirk', emoji: '🎈', badge: 'DAILY', img: 'Hot air balloon',
+      desc: 'Krillion, flipped. Say what everyone says and float to the surface.', tags: ['words'],
+      tint: 'rgba(60, 30, 0, 0.9)', tint2: 'rgba(255, 205, 60, 0.35)', g: 'linear-gradient(0deg,#0b2a5c,#ffd36e)', best: 'noillirk:endless', unit: 'm', glow: 'rgba(255, 205, 60, 0.4)',
     },
     {
-      id: 'noillirk', href: 'noillirk/', title: 'Noillirk', label: 'Noillirk', badge: 'DAILY',
-      desc: 'Krillion, flipped. Say what everyone else says and float to the top.', tags: ['words'],
-      bg: 'linear-gradient(0deg,#0b2a5c 0%,#3a7bd5 55%,#ffd36e 100%)', best: 'noillirk:endless', unit: 'm',
-      sprites: [['🎈', 72, 26, 50, 10], ['🐠', 28, 62, 44, -10], ['☀️', 22, 22, 40, 0], ['👥', 80, 66, 38, 0]],
+      href: 'year/?mode=timeline', title: 'Timeline', label: 'Timeline', emoji: '📏', img: 'Prague astronomical clock',
+      desc: 'Slot each photo into a growing timeline. Three mistakes and you are out.', tags: ['history'],
+      tint: 'rgba(15, 30, 110, 0.92)', tint2: 'rgba(79, 184, 255, 0.35)', g: 'linear-gradient(135deg,#4fb8ff,#5b5bff)', best: 'year:timeline', unit: 'cards',
     },
     {
-      id: 'year-hilo', href: 'year/?mode=hilo', title: 'Before or After?', label: 'Before?',
+      href: 'year/?mode=hilo', title: 'Before or After?', label: 'Before or After?', emoji: '↕️', img: 'Fall of the Berlin Wall',
       desc: 'Did it happen before or after? Build the longest streak.', tags: ['history'],
-      bg: 'linear-gradient(135deg,#25d07d,#0f9f8f)', best: 'year:hilo', unit: 'streak',
-      sprites: [['⬆️', 26, 30, 44, 0], ['⬇️', 74, 62, 44, 0], ['📺', 72, 28, 40, 10], ['🦖', 28, 64, 42, -8]],
+      tint: 'rgba(0, 70, 55, 0.92)', tint2: 'rgba(37, 208, 125, 0.35)', g: 'linear-gradient(135deg,#25d07d,#0f9f8f)', best: 'year:hilo', unit: 'streak',
     },
     {
-      id: 'year-blitz', href: 'year/?mode=blitz', title: 'Decade Blitz', label: 'Blitz',
+      href: 'year/?mode=blitz', title: 'Decade Blitz', label: 'Blitz', emoji: '⚡', img: 'Lightning',
       desc: '60 seconds. Pick the right decade. Combos multiply.', tags: ['history', 'speed'],
-      bg: 'linear-gradient(135deg,#ffd23f,#ff8f1f)', best: 'year:blitz', unit: 'pts',
-      sprites: [['⚡', 30, 32, 54, -10], ['⏱️', 72, 34, 46, 8], ['🕺', 56, 62, 42, 6], ['💾', 18, 66, 34, -8]],
+      tint: 'rgba(110, 50, 0, 0.92)', tint2: 'rgba(255, 210, 63, 0.4)', g: 'linear-gradient(135deg,#ffd23f,#ff8f1f)', best: 'year:blitz', unit: 'pts', glow: 'rgba(255, 176, 32, 0.45)',
     },
     {
-      id: 'krillion-infinite', href: 'krillion/?mode=infinite', title: 'Krillion: Air Supply', label: 'Air Supply',
+      href: 'krillion/?mode=infinite', title: 'Krillion: Air Supply', label: 'Air Supply', emoji: '🫧', img: 'Scuba diving',
       desc: '45 seconds of air. Every answer refills it. How deep can you go?', tags: ['words', 'speed'],
-      bg: 'linear-gradient(180deg,#0e7490 0%,#0c2d57 60%,#030b1f 100%)', best: 'krillion:infinite', unit: 'm',
-      sprites: [['🤿', 34, 34, 50, -8], ['🦑', 74, 62, 48, 12], ['🫧', 70, 24, 28, 0], ['🫧', 58, 40, 20, 0]],
+      tint: 'rgba(2, 20, 50, 0.95)', tint2: 'rgba(14, 116, 144, 0.4)', g: 'linear-gradient(180deg,#0e7490,#030b1f)', best: 'krillion:infinite', unit: 'm', glow: 'rgba(30, 167, 201, 0.45)',
     },
     {
-      id: 'noillirk-board', href: 'noillirk/?mode=board', title: 'Survey Board', label: 'Survey Board',
+      href: 'noillirk/?mode=board', title: 'Survey Board', label: 'Survey Board', emoji: '📋', img: 'Crowd|Audience',
       desc: 'Find the top 8 answers before you strike out.', tags: ['words'],
-      bg: 'linear-gradient(135deg,#ff6fb5,#a855f7)', best: 'noillirk:board', unit: 'pts',
-      sprites: [['📋', 28, 34, 48, -8], ['❌', 72, 30, 34, 10], ['🏆', 70, 62, 44, -6], ['💬', 26, 66, 36, 6]],
+      tint: 'rgba(70, 10, 80, 0.92)', tint2: 'rgba(255, 111, 181, 0.4)', g: 'linear-gradient(135deg,#ff6fb5,#a855f7)', best: 'noillirk:board', unit: 'pts',
     },
     {
-      id: 'year-survival', href: 'year/?mode=survival', title: 'Time Budget', label: 'Survival',
+      href: 'year/?mode=survival', title: 'Time Budget', label: 'Time Budget', emoji: '⏳', img: 'Hourglass',
       desc: 'You have 100 years of wrongness to spend. Spend it wisely.', tags: ['history'],
-      bg: 'linear-gradient(135deg,#f0435a,#8a1c5c)', best: 'year:survival', unit: 'rounds',
-      sprites: [['⏳', 30, 34, 52, -8], ['❤️', 72, 30, 38, 10], ['💀', 70, 64, 40, -6], ['📜', 26, 66, 36, 6]],
+      tint: 'rgba(90, 10, 40, 0.92)', tint2: 'rgba(240, 67, 90, 0.4)', g: 'linear-gradient(135deg,#f0435a,#8a1c5c)', best: 'year:survival', unit: 'rounds',
     },
     {
-      id: 'year-deep', href: 'year/?mode=classic&era=deep', title: 'Deep Time', label: '1???',
-      desc: 'Guess the Year, but from 1000 to 1899. Knights to steam engines.', tags: ['history'],
-      bg: 'linear-gradient(135deg,#a5793b,#5b3a1a)', best: 'year:classic-deep', unit: 'pts',
-      sprites: [['🏰', 30, 32, 50, -6], ['⚔️', 72, 30, 40, 12], ['🚂', 68, 62, 46, -4], ['🧭', 26, 66, 38, 8]],
+      href: 'year/?mode=classic&era=deep', title: 'Deep Time', label: 'Deep Time', emoji: '🏰', img: 'Bayeux Tapestry',
+      desc: 'Guess the Year from 1000 to 1899. Knights to steam engines.', tags: ['history'],
+      tint: 'rgba(60, 35, 10, 0.94)', tint2: 'rgba(165, 121, 59, 0.4)', g: 'linear-gradient(135deg,#a5793b,#5b3a1a)', best: 'year:classic-deep', unit: 'pts',
     },
     {
-      id: 'year-pop', href: 'year/?mode=classic&cat=culture', title: 'Pop Culture Years', label: '199?',
+      href: 'year/?mode=classic&cat=culture', title: 'Pop Culture Years', label: 'Pop Culture', emoji: '🎮', img: 'Jukebox',
       desc: 'Movies, games, music and memes. When did it drop?', tags: ['history'],
-      bg: 'linear-gradient(135deg,#ff6fb5,#ff9f43)', best: 'year:classic', unit: 'pts',
-      sprites: [['🎮', 28, 32, 48, -10], ['🎬', 72, 30, 44, 8], ['🎧', 68, 62, 42, -6], ['🦖', 26, 64, 40, 8]],
+      tint: 'rgba(80, 10, 60, 0.92)', tint2: 'rgba(255, 159, 67, 0.4)', g: 'linear-gradient(135deg,#ff6fb5,#ff9f43)', best: 'year:classic', unit: 'pts',
     },
     {
-      id: 'year-daily', href: 'year/?mode=daily', title: 'Daily Year', label: 'Daily', badge: 'DAILY',
-      desc: 'Same five events for everyone today. Compare with friends.', tags: ['history'],
-      bg: 'linear-gradient(135deg,#8f78ff,#4b2bd6)', best: 'year:daily', unit: 'pts',
-      sprites: [['📅', 30, 34, 52, -8], ['🌍', 72, 32, 44, 8], ['⭐', 66, 64, 36, -6], ['🗞️', 24, 66, 36, 6]],
+      href: 'year/?mode=daily', title: 'Daily Five', label: 'Daily Five', emoji: '📅', badge: 'DAILY', img: 'Newspaper',
+      desc: 'The same five photos for everyone today. Compare with friends.', tags: ['history'],
+      tint: 'rgba(40, 15, 110, 0.92)', tint2: 'rgba(143, 120, 255, 0.4)', g: 'linear-gradient(135deg,#8f78ff,#4b2bd6)', best: 'year:daily', unit: 'pts',
     },
   ];
 
   const DAILIES = [
-    { game: 'year', href: 'year/?mode=daily', name: 'Daily Year', emoji: '📅', bg: '#ece8ff', fmt: (d) => d.score.toLocaleString('en-US') + ' pts' },
-    { game: 'krillion', href: 'krillion/', name: 'Krillion', emoji: '🦐', bg: '#d9f2fb', fmt: (d) => d.score.toLocaleString('en-US') + ' m deep' },
-    { game: 'noillirk', href: 'noillirk/', name: 'Noillirk', emoji: '🎈', bg: '#fff1cf', fmt: (d) => d.score.toLocaleString('en-US') + ' m up' },
+    { game: 'year', href: 'year/?mode=daily', name: 'Daily Five', emoji: '📅', img: 'Times Square|Newspaper', tint: 'rgba(40, 15, 110, 0.95)', fmt: (d) => d.score.toLocaleString('en-US') + ' pts' },
+    { game: 'krillion', href: 'krillion/', name: 'Krillion', emoji: '🦐', img: 'Antarctic krill|Krill', tint: 'rgba(3, 30, 70, 0.96)', fmt: (d) => d.score.toLocaleString('en-US') + ' m deep' },
+    { game: 'noillirk', href: 'noillirk/', name: 'Noillirk', emoji: '🎈', img: 'Hot air balloon', tint: 'rgba(70, 35, 0, 0.94)', fmt: (d) => d.score.toLocaleString('en-US') + ' m climbed' },
   ];
 
-  const FILTERS = [
-    ['all', 'All'],
-    ['history', 'History'],
-    ['words', 'Word games'],
-    ['speed', 'Fast'],
-  ];
-
+  const FILTERS = [['all', 'All'], ['history', 'History'], ['words', 'Word games'], ['speed', 'Fast']];
   let filter = 'all';
 
-  function renderGrid() {
-    const grid = $('#game-grid');
-    grid.innerHTML = '';
-    GAMES.filter((g) => filter === 'all' || g.tags.includes(filter)).forEach((g) => {
-      const best = S.best.get(g.best);
-      grid.append(
-        h('a', { class: 'game', href: g.href },
-          h('div', { class: 'game-thumb', style: { background: g.bg } },
-            g.sprites.map(([e, x, y, size, r]) =>
-              h('span', { class: 'sprite', style: { left: x + '%', top: y + '%', fontSize: size + 'px', '--r': r + 'deg' } }, e)
-            ),
-            g.badge ? h('span', { class: 'thumb-badge' }, g.badge) : null,
-            h('span', { class: 'thumb-label' }, g.label)
-          ),
-          h('div', { class: 'game-meta' },
-            h('div', { class: 'game-title' }, g.title),
-            h('div', { class: 'game-desc' }, g.desc),
-            best != null ? h('div', { class: 'game-best' }, '🏅 Best: ' + best.toLocaleString('en-US') + ' ' + g.unit) : null
-          )
-        )
+  const EVENTS = (window.SPIL_EVENTS || []).map(([text, year, cat, emoji, fact, img]) => ({ text, year, cat, emoji, fact, img }));
+
+  // ---------- Hero polaroids: a 3-second mini game ----------
+  function renderHero() {
+    const stack = $('#hero-stack');
+    const famous = EVENTS.filter((e) => e.year >= 1900 && e.img);
+    S.shuffle(famous).slice(0, 3).forEach((ev) => {
+      const yearTag = h('span', { class: 'pol-year' }, '????');
+      const hint = h('div', { class: 'pol-hint' }, 'Tap to reveal the year');
+      let shown = false;
+      const card = h('button', { class: 'polaroid', type: 'button' },
+        S.wiki.photo(ev.img, { alt: ev.text, fallback: ev.emoji }),
+        yearTag,
+        h('div', { class: 'pol-caption' }, ev.text),
+        hint
       );
+      card.addEventListener('click', () => {
+        if (shown) {
+          location.href = 'year/?mode=classic';
+          return;
+        }
+        shown = true;
+        yearTag.textContent = ev.year;
+        yearTag.classList.add('revealed');
+        hint.textContent = 'Think you can beat that? Tap to play →';
+        S.sound.play('good');
+      });
+      stack.append(card);
     });
   }
 
-  function renderFilters() {
-    const wrap = $('#filters');
-    wrap.innerHTML = '';
-    FILTERS.forEach(([id, label]) => {
-      wrap.append(
-        h('button', {
-          class: 'chip', 'aria-pressed': String(filter === id),
-          onclick: () => {
-            filter = id;
-            S.sound.play('click');
-            renderFilters();
-            renderGrid();
-          },
-        }, label)
-      );
-    });
+  function renderTicker() {
+    const facts = S.shuffle(EVENTS).slice(0, 14);
+    const items = facts.map((e) => h('span', null, e.emoji + ' ', h('b', null, e.year + ': '), e.fact));
+    const track = $('#ticker');
+    track.append(...items, ...items.map((n) => n.cloneNode(true)));
   }
 
   function renderDailies() {
@@ -143,19 +121,101 @@
     DAILIES.forEach((d) => {
       const res = S.daily.get(d.game);
       row.append(
-        h('a', { class: 'daily' + (res ? ' done' : ''), href: d.href },
-          h('div', { class: 'daily-emoji', style: { background: d.bg } }, d.emoji),
-          h('div', null,
-            h('div', { class: 'daily-name' }, d.name + ' #' + S.dayNumber()),
-            h('div', { class: 'daily-state' }, res ? '✓ ' + d.fmt(res) : 'Not played yet · tap to play')
-          )
+        h('a', { class: 'daily' + (res ? ' done' : ''), href: d.href, style: { '--tint': d.tint } },
+          S.wiki.photo(d.img, { size: 960 }),
+          h('span', { class: 'daily-emoji' }, d.emoji),
+          h('span', { class: 'daily-status' }, res ? '✓ DONE' : 'NEW TODAY'),
+          h('div', { class: 'daily-name' }, d.name),
+          h('div', { class: 'daily-state' }, res ? 'You scored ' + d.fmt(res) : 'Not played yet. Same puzzle for everyone.')
         )
       );
     });
+    $('#day-no').textContent = '#' + S.dayNumber();
     const clock = $('#reset-clock');
-    const tick = () => (clock.textContent = 'New puzzles in ' + S.untilMidnight());
+    const tick = () => (clock.textContent = '⏱ New puzzles in ' + S.untilMidnight());
     tick();
     setInterval(tick, 1000);
+    const firstOpen = DAILIES.find((d) => !S.daily.get(d.game));
+    const btn = $('#play-daily');
+    if (firstOpen) {
+      btn.href = firstOpen.href;
+      btn.textContent = '▶ Play today\'s ' + firstOpen.name;
+    } else {
+      btn.href = 'year/?mode=classic';
+      btn.textContent = '▶ Play Guess the Year';
+    }
+  }
+
+  function renderFeatured() {
+    $('#featured').append(
+      S.wiki.photo('Humpback whale|Blue whale', { size: 1280 }),
+      h('div', { class: 'featured-copy' },
+        h('span', { class: 'featured-kicker' }, '🦐 Featured'),
+        h('h2', null, 'How deep can your brain dive?'),
+        h('p', null, 'In Krillion the obvious answer keeps you in the shallows. Think of something nobody else would, and sink all the way to the Hadal Zone.'),
+        h('div', { class: 'featured-tiers' }, ['🦠 Plankton', '🐟 Schooler', '🐠 Rare', '🐙 Deep Cut', '🦐 One in a Krillion'].map((t) => h('span', null, t))),
+        h('div', { class: 'btn-row', style: { justifyContent: 'flex-start' } },
+          h('a', { class: 'btn pink', href: 'krillion/' }, '🤿 Dive in'),
+          h('a', { class: 'btn ghost', href: 'noillirk/' }, '🎈 Try Noillirk')
+        )
+      )
+    );
+  }
+
+  function tilt(card) {
+    const thumb = $('.game-thumb', card);
+    card.addEventListener('pointermove', (e) => {
+      if (e.pointerType !== 'mouse') return;
+      const r = thumb.getBoundingClientRect();
+      const x = (e.clientX - r.left) / r.width - 0.5;
+      const y = (e.clientY - r.top) / r.height - 0.5;
+      thumb.style.setProperty('--ry', x * 10 + 'deg');
+      thumb.style.setProperty('--rx', -y * 10 + 'deg');
+    });
+    card.addEventListener('pointerleave', () => {
+      thumb.style.setProperty('--ry', '0deg');
+      thumb.style.setProperty('--rx', '0deg');
+    });
+  }
+
+  function renderGrid() {
+    const grid = $('#game-grid');
+    grid.innerHTML = '';
+    GAMES.filter((g) => filter === 'all' || g.tags.includes(filter)).forEach((g) => {
+      const best = S.best.get(g.best);
+      const card = h('a', { class: 'game', href: g.href },
+        h('div', { class: 'game-thumb', style: { '--tint': g.tint, '--tint-2': g.tint2, '--g': g.g, '--glow': g.glow || null } },
+          S.wiki.photo(g.img, { alt: '' }),
+          h('span', { class: 'sticker' }, g.emoji),
+          g.badge ? h('span', { class: 'thumb-badge' }, g.badge) : null,
+          h('span', { class: 'thumb-label' }, g.label),
+          h('span', { class: 'play-btn', 'aria-hidden': 'true' }, '▶')
+        ),
+        h('div', { class: 'game-meta' },
+          h('div', { class: 'game-title' }, g.title),
+          h('div', { class: 'game-desc' }, g.desc),
+          best != null ? h('div', { class: 'game-best' }, '🏅 Best: ' + best.toLocaleString('en-US') + ' ' + g.unit) : null
+        )
+      );
+      tilt(card);
+      grid.append(card);
+    });
+  }
+
+  function renderFilters() {
+    const wrap = $('#filters');
+    wrap.innerHTML = '';
+    FILTERS.forEach(([id, label]) => {
+      wrap.append(h('button', {
+        class: 'chip', 'aria-pressed': String(filter === id),
+        onclick: () => {
+          filter = id;
+          S.sound.play('click');
+          renderFilters();
+          renderGrid();
+        },
+      }, label));
+    });
   }
 
   const BEST_LABELS = [
@@ -182,11 +242,8 @@
     $('#p-xp').textContent = L.into + ' / ' + L.need + ' XP to level ' + (L.level + 1);
     const stats = $('#p-stats');
     stats.innerHTML = '';
-    [
-      [p.xp.toLocaleString('en-US'), 'total XP'],
-      [p.plays, 'games played'],
-      [S.profile.streak() + ' 🔥', 'day streak'],
-    ].forEach(([v, l]) => stats.append(h('div', { class: 'stat' }, h('b', null, v), h('span', null, l))));
+    [[p.xp.toLocaleString('en-US'), 'total XP'], [p.plays, 'games played'], [S.profile.streak() + ' 🔥', 'day streak']]
+      .forEach(([v, l]) => stats.append(h('div', { class: 'stat' }, h('b', null, v), h('span', null, l))));
     const list = $('#p-bests');
     list.innerHTML = '';
     BEST_LABELS.forEach(([key, label, unit]) => {
@@ -198,21 +255,23 @@
 
   $('#surprise').addEventListener('click', () => {
     S.sound.play('pop');
-    const g = S.pick(GAMES);
-    location.href = g.href;
+    location.href = S.pick(GAMES).href;
   });
 
   $('#reset').addEventListener('click', () => {
     if (!confirm('Reset all XP, streaks, high scores and daily results?')) return;
     try {
-      Object.keys(localStorage).filter((k) => k.startsWith('spil:')).forEach((k) => localStorage.removeItem(k));
+      Object.keys(localStorage).filter((k) => k.startsWith('spil:') && k !== 'spil:wiki:v1').forEach((k) => localStorage.removeItem(k));
     } catch (e) { /* ignore */ }
     location.reload();
   });
 
   S.mountTopbar({ home: './' });
+  renderHero();
+  renderTicker();
+  renderDailies();
+  renderFeatured();
   renderFilters();
   renderGrid();
-  renderDailies();
   renderProfile();
 })();

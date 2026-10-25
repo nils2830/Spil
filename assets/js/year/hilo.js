@@ -25,6 +25,7 @@
         return queue[0];
       };
       let challenger = takeNext();
+      Y.warm(queue.slice(0, 12), 3);
 
       const onKey = (e) => {
         if (e.key === 'ArrowUp' || e.key.toLowerCase() === 'b') document.querySelector('[data-pick="before"]')?.click();
@@ -44,11 +45,14 @@
             h('span', { class: 'hud-pill' }, '🏅 Best ', h('b', null, Math.max(streak, S.best.get(Y.bestKey('hilo')) || 0)))
           ),
           h('div', { class: 'hilo' },
-            Y.eventCard(anchor, h('div', { class: 'anchor-year' }, anchor.year)),
-            h('div', { class: 'vs' }, 'VS'),
-            Y.eventCard(challenger, mystery),
-            h('p', { class: 'center', style: { margin: '4px 0 0', fontWeight: 800 } }, 'Did this happen before or after ' + anchor.year + '?'),
+            h('div', { class: 'hilo-grid' },
+              Y.eventCard(anchor, h('div', { class: 'anchor-year' }, anchor.year), 'compact'),
+              h('div', { class: 'vs' }, 'VS'),
+              Y.eventCard(challenger, mystery, 'compact')
+            ),
+            h('p', { class: 'hilo-q' }, 'Did the second one happen before or after ' + anchor.year + '?'),
             h('div', { class: 'hilo-buttons' }, before, after),
+            h('div', { class: 'hilo-fact' }),
             h('div', { class: 'hint-line' }, 'Keyboard: ↑ before · ↓ after')
           )
         );
@@ -67,8 +71,9 @@
         mystery.style.color = ok ? 'var(--good)' : 'var(--bad)';
         (pick === 'before' ? before : after).classList.add(ok ? 'good' : 'bad');
         const card = mystery.closest('.event-card');
-        const fact = h('p', { class: 'fact', style: { marginBottom: 0 } }, h('b', null, '💡 '), challenger.fact);
-        card.append(fact);
+        Y.stamp(card, challenger.year, ok ? 'g' : 'r');
+        document.querySelector('.hilo-fact').append(h('p', { class: 'fact' }, h('b', null, '💡 '), challenger.fact));
+        S.wiki.preload(queue[qi % queue.length].img);
         if (ok) {
           streak++;
           S.sound.play(streak % 5 === 0 ? 'great' : 'good');
@@ -95,7 +100,7 @@
           mode: 'hilo', emoji: streak >= 12 ? '👑' : streak >= 6 ? '🔥' : '🙃', title,
           score: streak, unit: 'in a row', xp: streak * 9 + 4,
           share: 'spil. Before or After? ↕️ I got ' + streak + ' in a row!\n' + location.href.split('?')[0] + '?mode=hilo',
-          recap: Y.recapList(log.slice(-10).map((l) => ({ ev: l.ev, note: l.ok ? '✓' : '✗ ended it' }))),
+          recap: Y.recapList(log.slice(-10).map((l) => ({ ev: l.ev, note: l.ok ? '✓' : '✗ ended it', grade: l.ok ? 'g' : 'r' }))),
           celebrate: streak >= 12,
         });
       }

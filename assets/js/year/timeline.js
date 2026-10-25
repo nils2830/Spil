@@ -17,6 +17,12 @@
       let score = 0;
       const placed = [queue[qi++]];
       let current = queue[qi++];
+      const thumbs = new Map(); // keep loaded photos across re-renders
+      const thumb = (ev) => {
+        if (!thumbs.has(ev.id)) thumbs.set(ev.id, S.wiki.photo(ev.img, { cls: 'tl-thumb', size: 330, fallback: ev.emoji }));
+        return thumbs.get(ev.id);
+      };
+      Y.warm(queue.slice(0, 16), 3);
       let last = null; // {id, ok}
       const log = [];
       let over = false;
@@ -38,7 +44,7 @@
         if (!over) {
           currentWrap.append(
             h('div', { class: 'kicker center', style: { marginBottom: '6px' } }, 'Where does this go?'),
-            Y.eventCard(current)
+            Y.eventCard(current, null, 'mini')
           );
         }
 
@@ -53,9 +59,9 @@
             const ev = placed[k];
             const cls = last && last.id === ev.id ? (last.ok ? ' new-ok' : ' new-bad') : '';
             list.append(h('div', { class: 'tl-item' + cls, 'data-id': ev.id },
+              thumb(ev),
               h('span', { class: 'tl-year' }, ev.year),
-              h('span', { class: 'tl-text' }, ev.text),
-              h('span', { class: 'tl-emoji' }, ev.emoji)
+              h('span', { class: 'tl-text' }, ev.text)
             ));
           }
         }
@@ -100,6 +106,7 @@
           return;
         }
         current = queue[qi++ % queue.length];
+        S.wiki.preload(queue[qi % queue.length].img);
         paint();
         const el = list.querySelector('[data-id="' + last.id + '"]');
         if (el) {
@@ -116,7 +123,7 @@
           score, unit: score === 1 ? 'card placed' : 'cards placed', xp: score * 9 + 4,
           stats: [[placed.length, 'timeline length'], [placed[0].year + '–' + placed[placed.length - 1].year, 'span']],
           share: 'spil. Timeline 📏 I placed ' + score + ' events in a row (almost)!\n' + location.href.split('?')[0] + '?mode=timeline',
-          recap: Y.recapList(missed.map((l) => ({ ev: l.ev, note: 'misplaced' }))),
+          recap: Y.recapList(missed.map((l) => ({ ev: l.ev, note: '✗ misplaced', grade: 'r' }))),
           celebrate: score >= 15,
         });
       }

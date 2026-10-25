@@ -4,11 +4,13 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>spil. · silly smart games</title>
-  <meta name="description" content="A collection of quick, ridiculously replayable browser games: guess the year, build timelines, dive for rare answers in Krillion and hunt the obvious in Noillirk.">
-  <meta name="theme-color" content="#6b4dff">
+  <meta name="description" content="Quick, ridiculously replayable browser games: guess the year from real photos, build timelines, dive for rare answers in Krillion and hunt the obvious in Noillirk.">
+  <meta name="theme-color" content="#0c0a1d">
   <meta property="og:title" content="spil. · silly smart games">
-  <meta property="og:description" content="Guess the year, build timelines, dive for rare answers. Quick games that make you smarter by accident.">
+  <meta property="og:description" content="Guess the year from real photos, build timelines, dive for rare answers. Quick games that make you smarter by accident.">
   <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://en.wikipedia.org" crossorigin>
+  <link rel="preconnect" href="https://upload.wikimedia.org">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@500;700;800;900&display=swap" rel="stylesheet">
@@ -19,21 +21,30 @@
   <div id="topbar"></div>
 
   <main class="home">
-    <header class="hero">
-      <h1 class="hero-title"><span>s</span><span>p</span><span>i</span><span>l</span><span class="dot">.</span></h1>
-      <p class="hero-sub">Silly little games that make you smarter by accident.</p>
-      <div class="hero-actions">
-        <button class="btn" id="surprise">🎲 Surprise me</button>
+    <section class="hero">
+      <div class="hero-copy">
+        <div class="hero-kicker">🎮 12 games · 3 new dailies every day</div>
+        <h1 class="hero-title"><span>s</span><span>p</span><span>i</span><span>l</span><span class="dot">.</span></h1>
+        <p class="hero-sub">Silly little games that make you smarter by accident. Real photos, real history, zero boring quizzes.</p>
+        <div class="hero-actions">
+          <a class="btn pink" id="play-daily" href="year/?mode=daily">▶ Play today's daily</a>
+          <button class="btn ghost" id="surprise">🎲 Surprise me</button>
+        </div>
       </div>
-    </header>
+      <div class="hero-stack" id="hero-stack" aria-label="Quick teaser: guess when these photos were taken"></div>
+    </section>
 
-    <section class="dailies" aria-labelledby="dailies-h">
+    <div class="ticker" aria-hidden="true"><div class="ticker-track" id="ticker"></div></div>
+
+    <section aria-labelledby="dailies-h">
       <div class="section-head">
-        <h2 id="dailies-h">Today's dailies</h2>
-        <span class="muted" id="reset-clock"></span>
+        <h2 id="dailies-h">Today's dailies <span class="muted day-no" id="day-no"></span></h2>
+        <span class="clock" id="reset-clock"></span>
       </div>
       <div class="daily-row" id="daily-row"></div>
     </section>
+
+    <section class="featured" id="featured"></section>
 
     <section aria-labelledby="games-h">
       <div class="section-head">
@@ -59,12 +70,16 @@
     </section>
 
     <footer class="footer-note">
-      Made for fun and curiosity. Progress is saved in your browser only.<br>
+      Progress is saved in your browser only. Photos come from Wikipedia and Wikimedia Commons under free licenses; tap 📷 on a photo for its author and license.<br>
       Krillion and Noillirk are fan-made takes on the rare-answer and common-answer trivia formats.
     </footer>
   </main>
 
   <script src="assets/js/core.js"></script>
+  <script src="assets/js/wiki.js"></script>
+  <script src="assets/js/data/events-a.js"></script>
+  <script src="assets/js/data/events-b.js"></script>
+  <script src="assets/js/data/events-c.js"></script>
   <script src="assets/js/home.js"></script>
 </body>
 </html>

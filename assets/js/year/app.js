@@ -6,7 +6,7 @@
   const Y = (window.YearGame = { modes: {} });
 
   const THIS_YEAR = new Date().getFullYear();
-  Y.EVENTS = window.SPIL_EVENTS.map(([text, year, cat, emoji, fact], id) => ({ id, text, year, cat, emoji, fact }));
+  Y.EVENTS = window.SPIL_EVENTS.map(([text, year, cat, emoji, fact, img], id) => ({ id, text, year, cat, emoji, fact, img }));
   Y.CATS = [
     ['all', 'Everything', '🌍'],
     ['history', 'History', '🏛️'],
@@ -78,13 +78,27 @@
     return screen;
   };
 
-  Y.eventCard = function (ev, extra) {
-    return h('div', { class: 'event-card card cat-' + ev.cat },
-      h('div', { class: 'ev-emoji' }, ev.emoji),
-      h('div', null, h('span', { class: 'ev-cat' }, Y.CAT_NAME[ev.cat])),
-      h('h2', { class: 'ev-text' }, ev.text),
-      extra || null
+  // Full-bleed photo card. size: '' | 'compact' | 'mini'
+  Y.eventCard = function (ev, extra, size) {
+    return h('div', { class: 'event-card cat-' + ev.cat + (size ? ' ' + size : '') },
+      S.wiki.photo(ev.img, { credit: true, alt: ev.text, fallback: ev.emoji }),
+      h('div', { class: 'ev-shade' }),
+      h('div', { class: 'ev-top' }, h('span', { class: 'ev-cat' }, ev.emoji + ' ' + Y.CAT_NAME[ev.cat])),
+      h('div', { class: 'ev-body' }, h('h2', { class: 'ev-text' }, ev.text), extra || null)
     );
+  };
+
+  // Rubber-stamp the real year onto a photo card.
+  Y.stamp = function (card, text, grade) {
+    const old = card.querySelector('.stamp');
+    if (old) old.remove();
+    card.append(h('div', { class: 'stamp ' + (grade || '') }, text));
+    S.restartAnim(card, 'thud');
+  };
+
+  // Look up photos for upcoming events in one batched request and warm the first images.
+  Y.warm = function (events, count = 2) {
+    events.forEach((ev, i) => (i < count ? S.wiki.preload(ev.img) : S.wiki.first(ev.img)));
   };
 
   Y.go = function (mode) {
@@ -100,6 +114,15 @@
 
   // ---------- Menu ----------
   const MODE_LIST = ['classic', 'daily', 'timeline', 'hilo', 'blitz', 'survival'];
+  const MODE_IMG = {
+    classic: 'Apollo 11',
+    daily: 'Times Square|Newspaper',
+    timeline: 'Prague astronomical clock',
+    hilo: 'Fall of the Berlin Wall',
+    blitz: 'Lightning',
+    survival: 'Hourglass',
+  };
+  const DEEP_IMG = { classic: 'Bayeux Tapestry', timeline: 'Gutenberg Bible', hilo: 'Battle of Waterloo', blitz: 'Great Fire of London', survival: 'Black Death' };
 
   Y.menu = function () {
     history.replaceState(null, '', location.pathname);
@@ -143,7 +166,9 @@
         const m = Y.modes[id];
         const best = S.best.get(Y.bestKey(id));
         const daily = id === 'daily' ? S.daily.get('year') : null;
+        const img = (Y.settings.era === 'deep' && DEEP_IMG[id]) || MODE_IMG[id];
         grid.append(h('button', { class: 'mode-card', onclick: () => Y.go(id) },
+          S.wiki.photo(img, { alt: '' }),
           id === 'daily' ? h('span', { class: 'badge' + (daily ? ' done' : '') }, daily ? '✓ DONE' : 'NEW TODAY') : null,
           h('div', { class: 'mode-emoji' }, m.emoji),
           h('div', { class: 'mode-name' }, m.name),
@@ -155,11 +180,18 @@
     paintEra();
     paintModes();
 
+    // Film strip of random real photos with their years
+    const strip = S.shuffle(Y.EVENTS.filter((e) => e.year >= 1900)).slice(0, 10);
+    // Two copies so the CSS marquee loops seamlessly.
+    const frames = strip.concat(strip).map((e) => h('div', { class: 'film-frame' }, S.wiki.photo(e.img, { size: 330, fallback: e.emoji }), h('span', null, e.year)));
+    const film = h('div', { class: 'filmstrip', 'aria-hidden': 'true' }, h('div', { class: 'film-track' }, frames));
+
     Y.show(
       h('div', { class: 'menu-head' },
-        h('h1', null, 'Guess the Year'),
-        h('p', null, 'From moon landings to Mario. How well do you really know when things happened?')
+        h('h1', null, h('span', { class: 'grad-text' }, 'Guess the Year')),
+        h('p', null, 'Real photos, real moments. From moon landings to Mario: how well do you really know when things happened?')
       ),
+      film,
       h('div', { class: 'menu-section' }, h('span', { class: 'kicker' }, 'Pick a mode'), grid),
       h('div', { class: 'menu-section center' }, h('span', { class: 'kicker' }, 'Era'), eraToggle),
       h('div', { class: 'menu-section' }, h('span', { class: 'kicker' }, 'Topics'), catChips),
@@ -204,12 +236,14 @@
     setTimeout(() => again.focus({ preventScroll: true }), 50);
   };
 
+  // Photo mosaic recap. rows: [{ev, note, grade}]
   Y.recapList = function (rows) {
-    return h('div', { class: 'recap' }, rows.map((r) =>
-      h('div', { class: 'recap-item' },
-        h('span', null, r.ev.emoji),
-        h('span', { class: 'r-text' }, r.ev.text),
-        h('span', { class: 'r-meta' }, String(r.ev.year), r.note ? h('small', null, r.note) : null)
+    return h('div', { class: 'mosaic' }, rows.map((r) =>
+      h('div', { class: 'tile', title: r.ev.fact },
+        S.wiki.photo(r.ev.img, { size: 500, fallback: r.ev.emoji }),
+        r.note ? h('span', { class: 'tile-note ' + (r.grade || '') }, r.note) : null,
+        h('div', { class: 'tile-year' }, r.ev.year),
+        h('div', { class: 'tile-text' }, r.ev.text)
       )
     ));
   };

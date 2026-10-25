@@ -42,7 +42,10 @@
     const before = D.zoneAt(prevDepth);
     const after = D.zoneAt(depth);
     if (before === after) return null;
-    return h('div', { class: 'suggest-row' }, h('span', { class: 'kicker' }, '📍 Now entering the ' + after.name), after.fact);
+    return h('div', { class: 'suggest-row zone-row' },
+      S.wiki.photo(after.img, { cls: 'zone-photo', size: 500, credit: true, fallback: '🐙' }),
+      h('div', null, h('span', { class: 'kicker' }, '📍 Now entering the ' + after.name), after.fact)
+    );
   }
 
   function boardGrid(prompt, count, opts = {}) {
@@ -51,6 +54,7 @@
       const pts = opts.points ? opts.points(i) : null;
       g.append(h('div', { class: 'board-slot found' + (opts.mine === i ? ' mine' : ''), style: { animationDelay: i * 60 + 'ms' } },
         h('span', { class: 'b-rank' }, i + 1),
+        D.answerPhoto(prompt, prompt.names[i], { cls: 'b-thumb', fallback: '' }),
         h('span', { class: 'b-name' }, prompt.names[i]),
         pts != null ? h('span', { class: 'b-pts' }, pts) : null
       ));
@@ -65,7 +69,8 @@
     if (g.dir === 'down') {
       const rareStart = Math.ceil(n * 0.8);
       const rare = S.shuffle(prompt.names.slice(rareStart).filter((_, i) => !m || i + rareStart !== m.i)).slice(0, 5);
-      rows.push(h('div', { class: 'suggest-row' }, h('span', { class: 'kicker' }, '🦐 One-in-a-krillion answers you could try next time'), h('div', { class: 'pill-list' }, rare.map((r) => h('span', null, r)))));
+      rows.push(h('div', { class: 'suggest-row' }, h('span', { class: 'kicker' }, '🦐 One-in-a-krillion answers you could try next time'),
+        h('div', { class: 'pic-list' }, rare.slice(0, 4).map((r) => h('div', { class: 'pic' }, D.answerPhoto(prompt, r, { cls: 'pic-photo', fallback: '🦐' }), h('span', null, r))))));
       rows.push(h('div', { class: 'suggest-row' }, h('span', { class: 'kicker' }, '🦠 What most people say'), h('div', { class: 'pill-list' }, prompt.names.slice(0, 4).map((r) => h('span', null, r)))));
     } else {
       rows.push(h('div', { class: 'suggest-row' }, h('span', { class: 'kicker' }, '📋 The top 10 answers'), boardGrid(prompt, Math.min(10, n), { mine: m ? m.i : -1, points: (i) => g.score(i).pts })));
@@ -74,7 +79,9 @@
     if (z) rows.unshift(z);
 
     const badge = m
-      ? h('div', { class: 'tier-badge', style: { '--tier': res.tier.color } }, h('div', { class: 'tb-emoji' }, res.tier.emoji), h('div', { class: 'tb-name' }, res.tier.name))
+      ? h('div', { class: 'tier-badge', style: { '--tier': res.tier.color } },
+        h('div', { class: 'answer-hero' }, D.answerPhoto(prompt, m.name, { cls: 'answer-photo', size: 500, credit: true, fallback: res.tier.emoji }), h('span', { class: 'answer-tier' }, res.tier.emoji)),
+        h('div', { class: 'tb-name' }, res.tier.name))
       : h('div', { class: 'tier-badge' }, h('div', { class: 'tb-emoji' }, '⏰'), h('div', { class: 'tb-name', style: { color: '#ff9aa8' } }, 'Time’s up!'));
     const pts = h('div', { class: 'fb-points' }, '+0');
     const next = h('button', { class: 'btn wide', style: { marginTop: '16px' } }, isLast ? 'See results →' : g.dir === 'down' ? 'Dive deeper →' : 'Float up →');
@@ -154,6 +161,8 @@
 
   const recapRows = (log) => log.map((l) => ({
     emoji: l.res.tier ? l.res.tier.emoji : '⏰',
+    pid: l.prompt.id,
+    name: l.m ? l.m.name : null,
     q: l.prompt.q,
     answer: l.m ? l.m.name + ' · #' + (l.m.i + 1) + ' of ' + l.prompt.answers.length : 'No answer',
     pts: '+' + l.res.pts,
@@ -318,7 +327,7 @@
             paintDepth();
             S.sound.play(res.pts >= 85 ? 'great' : res.pts >= 30 ? 'good' : 'bubble');
             showBanner([
-              h('span', { class: 'tb-emoji', style: { fontSize: '40px' } }, res.tier.emoji),
+              D.answerPhoto(prompt, m.name, { cls: 'banner-photo', fallback: res.tier.emoji }),
               h('span', null, h('span', { class: 'tb-name', style: { fontSize: '22px', color: res.tier.color, display: 'block' } }, res.tier.name + ' +' + res.pts), h('span', { class: 'muted', style: { fontWeight: 800, fontSize: '13px' } }, '“' + m.name + '” · +' + res.tier.air + 's air')),
             ]);
             const z0 = D.zoneAt(prev), z1 = D.zoneAt(now);
@@ -403,7 +412,7 @@
         const grid = h('div', { class: 'board' });
         for (let i = 0; i < 8; i++) {
           const nameEl = h('span', { class: 'b-name' }, prompt.names[i]);
-          const slot = h('div', { class: 'board-slot hidden' }, h('span', { class: 'b-rank' }, i + 1), nameEl, h('span', { class: 'b-pts' }, BOARD_PTS[i]));
+          const slot = h('div', { class: 'board-slot hidden' }, h('span', { class: 'b-rank' }, i + 1), D.answerPhoto(prompt, prompt.names[i], { cls: 'b-thumb', fallback: '' }), nameEl, h('span', { class: 'b-pts' }, BOARD_PTS[i]));
           slots.push(slot);
           grid.append(slot);
         }
@@ -492,7 +501,7 @@
           unitLabel: 'points out of ' + max.toLocaleString('en-US'), xp: st.total / 12 + st.found,
           stats: [[st.found + '/' + BOARDS * 8, 'answers found'], [Math.round(frac * 100) + '%', 'of max']],
           share: 'spil. Noillirk Survey Board 📋 ' + st.total + ' pts · found ' + st.found + '/' + BOARDS * 8 + ' top answers\n' + location.href.split('?')[0] + '?mode=board',
-          recap: D.recapList(st.log.map((l) => ({ emoji: l.found === 8 ? '🧹' : l.found >= 5 ? '📋' : '🤏', q: l.prompt.q, answer: 'Found ' + l.found + ' of 8', pts: '+' + l.pts }))),
+          recap: D.recapList(st.log.map((l) => ({ emoji: l.found === 8 ? '🧹' : l.found >= 5 ? '📋' : '🤏', pid: l.prompt.id, name: l.prompt.names[0], q: l.prompt.q, answer: 'Found ' + l.found + ' of 8', pts: '+' + l.pts }))),
           celebrate: frac >= 0.6,
         });
       }

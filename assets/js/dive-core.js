@@ -29,7 +29,8 @@
     });
     const no = {};
     Object.entries(p.no || {}).forEach(([k, v]) => (no[S.norm(k)] = v));
-    return { id, q: p.q, theme: p.theme, answers, names: answers.map((a) => a.split('|')[0]), match: S.makeMatcher(answers), no };
+    const meta = (window.SPIL_PROMPT_META || {})[p.q] || [];
+    return { id, q: p.q, theme: p.theme, answers, names: answers.map((a) => a.split('|')[0]), match: S.makeMatcher(answers), no, img: meta[0] || '', hint: meta[1] || '' };
   });
 
   // ---------- Scoring ----------
@@ -80,11 +81,11 @@
 
   // ---------- Ocean zones (real oceanography, a little learning on the way down) ----------
   D.ZONES = [
-    { min: 0, name: 'Sunlight Zone', fact: 'Sunlight reaches down to about 200 m. Almost all ocean plants and algae live here.' },
-    { min: 200, name: 'Twilight Zone', fact: 'Light fades fast below 200 m. Many animals here make their own light: bioluminescence.' },
-    { min: 1000, name: 'Midnight Zone', fact: 'Below 1,000 m it is pitch black, and the water pressure is over 100 times what you feel at the surface.' },
-    { min: 4000, name: 'Abyssal Zone', fact: 'From 4,000 m, near-freezing water covers the abyssal plains, which make up most of the ocean floor.' },
-    { min: 6000, name: 'Hadal Zone', fact: 'Below 6,000 m are the deep trenches. The deepest point, Challenger Deep, is nearly 11,000 m down.' },
+    { min: 0, name: 'Sunlight Zone', img: 'Coral reef|Green sea turtle', fact: 'Sunlight reaches down to about 200 m. Almost all ocean plants and algae live here.' },
+    { min: 200, name: 'Twilight Zone', img: 'Lanternfish|Atolla jellyfish', fact: 'Light fades fast below 200 m. Many animals here make their own light: bioluminescence.' },
+    { min: 1000, name: 'Midnight Zone', img: 'Anglerfish|Vampire squid', fact: 'Below 1,000 m it is pitch black, and the water pressure is over 100 times what you feel at the surface.' },
+    { min: 4000, name: 'Abyssal Zone', img: 'Grimpoteuthis|Dumbo octopus|Tripod fish', fact: 'From 4,000 m, near-freezing water covers the abyssal plains, which make up most of the ocean floor.' },
+    { min: 6000, name: 'Hadal Zone', img: 'Mariana snailfish|Mariana Trench', fact: 'Below 6,000 m are the deep trenches. The deepest point, Challenger Deep, is nearly 11,000 m down.' },
   ];
   D.zoneAt = (depth) => D.ZONES.filter((z) => depth >= z.min).pop();
 
@@ -183,7 +184,10 @@
 
     const form = h('form', { class: 'answer-row', onsubmit: (e) => { e.preventDefault(); submit(); } }, input, go);
     const card = h('div', { class: 'prompt-card card' },
-      h('div', { class: 'prompt-theme' }, (opts.label ? opts.label + ' · ' : '') + D.THEME_NAME[prompt.theme]),
+      h('div', { class: 'prompt-hero' },
+        S.wiki.photo(prompt.img, { alt: '' }),
+        h('div', { class: 'prompt-theme' }, (opts.label ? opts.label + ' · ' : '') + D.THEME_NAME[prompt.theme])
+      ),
       h('h2', { class: 'prompt-q' }, prompt.q),
       h('div', { class: 'prompt-goal' }, opts.game.goal),
       fill ? h('div', { class: 'ptimer' }, fill) : null,
@@ -301,6 +305,7 @@
       const best = m.bestKey ? S.best.get(m.bestKey) : null;
       const daily = id === 'daily' ? S.daily.get(g.id) : null;
       grid.append(h('button', { class: 'mode-card', onclick: () => D.go(id) },
+        S.wiki.photo(MODE_IMG[g.id][id], { alt: '' }),
         id === 'daily' ? h('span', { class: 'badge' + (daily ? ' done' : '') }, daily ? '✓ DONE' : 'NEW TODAY') : null,
         h('div', { class: 'mode-emoji' }, m.emoji),
         h('div', { class: 'mode-name' }, m.name + (id === 'daily' ? ' #' + S.dayNumber() : '')),
@@ -333,7 +338,8 @@
       chips,
       h('h3', { class: 'section-title' }, g.dir === 'down' ? 'Rarity tiers' : 'Scoring'),
       legend,
-      h('a', { class: 'mode-card', href: g.sister.href, style: { marginTop: '26px', textDecoration: 'none' } },
+      h('a', { class: 'mode-card sister', href: g.sister.href, style: { marginTop: '26px', textDecoration: 'none' } },
+        S.wiki.photo(g.dir === 'down' ? 'Hot air balloon' : 'Antarctic krill|Krill', { alt: '' }),
         h('div', { class: 'mode-name' }, 'Try ' + g.sister.name + ' →'),
         h('div', { class: 'mode-desc' }, g.sister.text)
       ),
@@ -342,6 +348,11 @@
   };
 
   D.theme = () => S.store.get(D.game.id + ':theme', 'all');
+
+  const MODE_IMG = {
+    krillion: { daily: 'Coral reef', endless: 'Humpback whale|Blue whale', infinite: 'Scuba diving' },
+    noillirk: { daily: 'Hot air balloon', endless: 'Ocean sunfish|Sea surface', board: 'Crowd|Audience' },
+  };
 
   // opts: {mode, emoji, title, score, unitLabel, bestKey, xp, stats, grid, share, recap, again, againLabel, extra, celebrate}
   D.results = function (opts) {
@@ -372,9 +383,15 @@
     } else S.sound.play('good');
   };
 
+  // Photo of a typed answer, found by searching Wikipedia for "answer + hint" (e.g. "Axolotl animal").
+  D.answerPhoto = function (prompt, name, opts = {}) {
+    return S.wiki.photo(null, Object.assign({ query: name + ' ' + prompt.hint, mustContain: name, size: 330, alt: name }, opts));
+  };
+
+  // rows: [{emoji, q, answer, pts, pid?, name?}] (pid = prompt id, so stored daily recaps stay small)
   D.recapList = function (rows) {
     return h('div', { class: 'answers-recap' }, rows.map((r) => h('div', { class: 'ar' },
-      h('span', { style: { fontSize: '22px' } }, r.emoji),
+      r.name && D.PROMPTS[r.pid] ? D.answerPhoto(D.PROMPTS[r.pid], r.name, { cls: 'ar-photo', fallback: r.emoji }) : h('span', { class: 'ar-photo ar-emoji' }, r.emoji),
       h('span', { class: 'ar-q' }, r.q, h('small', null, r.answer)),
       h('span', { class: 'ar-pts' }, r.pts)
     )));

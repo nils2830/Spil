@@ -16,7 +16,11 @@ A neal.fun-style collection of quick, replayable browser games. Pure HTML, CSS a
 | **Krillion** | Name the answer nobody else would. Rare answers dive deeper (Daily, Endless, Air Supply). |
 | **Noillirk** | Krillion flipped. Name what everyone would say and float up to the surface (Daily, Endless, Survey Board). |
 
-Extras that keep it entertaining: XP and levels shared across all games, daily streaks, personal bests, confetti, sound effects (mutable), keyboard shortcuts and share buttons. Every Guess the Year event comes with a fun fact, and Krillion teaches real ocean depth zones on the way down.
+Extras that keep it entertaining: real photos on every card, XP and levels shared across all games, daily streaks, personal bests, confetti, sound effects (mutable), keyboard shortcuts and share buttons. Every Guess the Year event comes with a fun fact, and Krillion teaches real ocean depth zones (with photos of the creatures that live there) on the way down.
+
+## Photos
+
+Photos are loaded live in the visitor's browser from the [Wikipedia API](https://www.mediawiki.org/wiki/API:Main_page) and [Wikimedia Commons](https://commons.wikimedia.org/). Only free-licensed lead images are used (the [PageImages](https://www.mediawiki.org/wiki/Extension:PageImages) API returns free images by default), and each big photo shows its author and license with a link to the file page. Lookups are batched and cached in the browser for three weeks. If Wikipedia can't be reached, the games fall back to emoji artwork and keep working.
 
 ## Put it online with GitHub Pages
 
@@ -49,11 +53,13 @@ assets/js/year/            Guess the Year modes
 assets/js/dive-*.js        Krillion/Noillirk engine and modes
 assets/js/data/events-*.js Historical events: [event, year, category, emoji, fun fact]
 assets/js/data/prompts-*.js Krillion/Noillirk prompts with answers ordered from most to least common
+assets/js/data/prompt-meta.js Header photo + search hint per prompt (used to find a photo of each answer)
+assets/js/wiki.js          Photo loader: Wikipedia/Commons lookups, search, credits, caching
 ```
 
 ## Adding content
 
-- **New event:** add a line to one of the `events-*.js` files: `['Something happens', 1999, 'culture', '🎉', 'A fun fact.']`. Categories are `history`, `science`, `culture` and `sports`.
+- **New event:** add a line to one of the `events-*.js` files: `['Something happens', 1999, 'culture', '🎉', 'A fun fact.', "Wikipedia article|Fallback article"]`. Categories are `history`, `science`, `culture` and `sports`. The last field lists Wikipedia article titles; the first one with a free lead image is used as the photo.
 - **New prompt:** add an object to one of the `prompts-*.js` files. Order answers from most to least common; aliases go after `|`, for example `'United Kingdom|uk|britain'`. Optional `no` entries explain common wrong answers (for example spiders in "Name an insect").
 
 Progress is saved in the visitor's browser (`localStorage`) only.

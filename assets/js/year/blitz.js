@@ -14,6 +14,7 @@
     start() {
       const era = Y.era();
       const events = Y.freshOrder(Y.pool());
+      Y.warm(events.slice(0, 30), 3);
       const st = { i: 0, score: 0, streak: 0, best: 0, right: 0, wrong: 0, log: [] };
       let busy = false;
       let over = false;
@@ -84,15 +85,17 @@
         const choices = h('div', { class: 'choices' });
         options(ev.year).forEach((dec) => {
           const btn = h('button', { class: 'choice' }, dec + 's');
-          btn.addEventListener('click', (e) => pick(ev, dec, answer, btn, choices, note, e));
+          btn.addEventListener('click', () => pick(ev, dec, answer, btn, choices, note, card));
           choices.append(btn);
         });
+        const card = Y.eventCard(ev, null, 'compact');
         stage.innerHTML = '';
-        stage.append(Y.eventCard(ev), choices, note);
+        stage.append(card, choices, note);
+        [st.i, st.i + 1].forEach((k) => S.wiki.preload(events[k % events.length].img));
         busy = false;
       }
 
-      function pick(ev, dec, answer, btn, choices, note, e) {
+      function pick(ev, dec, answer, btn, choices, note, card) {
         if (busy || over) return;
         busy = true;
         Y.markSeen(ev);
@@ -106,17 +109,19 @@
           const pts = 100 * mult();
           st.score += pts;
           btn.classList.add('right');
+          Y.stamp(card, ev.year, 'g');
           Y.floatScore('+' + pts, x, y);
           S.sound.play(mult() > 1 ? 'great' : 'good');
           st.log.push({ ev, ok: true });
           S.countUp(scoreEl, st.score, 300, st.score - pts);
           paintCombo();
-          setTimeout(ask, 380);
+          setTimeout(ask, 600);
         } else {
           st.streak = 0;
           st.wrong++;
           timer.add(-PENALTY);
           btn.classList.add('wrong');
+          Y.stamp(card, ev.year, 'r');
           choices.querySelectorAll('.choice').forEach((b) => {
             if (b.textContent === answer + 's') b.classList.add('right');
           });
@@ -127,7 +132,7 @@
           S.restartAnim(choices, 'shake');
           st.log.push({ ev, ok: false });
           paintCombo();
-          setTimeout(ask, 1100);
+          setTimeout(ask, 1300);
         }
       }
 
@@ -141,7 +146,7 @@
           score: st.score, unit: 'points', xp: st.score / 40 + st.right,
           stats: [[st.right, 'correct'], [acc + '%', 'accuracy'], [st.best, 'best streak']],
           share: 'spil. Decade Blitz ⚡ ' + st.score.toLocaleString('en-US') + ' pts · ' + st.right + ' right · best streak ' + st.best + '\n' + location.href.split('?')[0] + '?mode=blitz',
-          recap: missed.length ? Y.recapList(missed.slice(-10).map((l) => ({ ev: l.ev, note: 'missed' }))) : null,
+          recap: missed.length ? Y.recapList(missed.slice(-10).map((l) => ({ ev: l.ev, note: '✗ missed', grade: 'r' }))) : null,
           celebrate: st.score >= 1800,
         });
       }
