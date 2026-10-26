@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="da">
+<head>
+  <meta charset="utf-8">
+  <title>Reels mens Claude tænker</title>
+  <style>
+    :root {
+      --bg: #fbf8f4; --fg: #1f1d1a; --muted: #6b655d; --line: #e4ddd3; --field: #fff;
+      --accent: #c8553d; --busy: #b45309; --ok: #15803d;
+      color-scheme: light;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #1c1b19; --fg: #f1ece4; --muted: #a39b90; --line: #36332f; --field: #262421;
+        --accent: #e07a5f; --busy: #f59e0b; --ok: #4ade80;
+        color-scheme: dark;
+      }
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; width: 300px; padding: 14px 16px 16px; background: var(--bg); color: var(--fg);
+      font: 13px/1.45 system-ui, -apple-system, "Segoe UI", sans-serif; }
+    h1 { margin: 0 0 10px; font-size: 15px; }
+    .status { display: flex; align-items: center; gap: 8px; padding: 8px 10px; border: 1px solid var(--line);
+      border-radius: 8px; margin-bottom: 12px; }
+    .dot { width: 9px; height: 9px; border-radius: 50%; background: var(--muted); flex: none; }
+    .status.busy .dot { background: var(--busy); }
+    .status.idle .dot { background: var(--ok); }
+    label { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin: 8px 0; }
+    input[type=number] { width: 54px; }
+    .num { white-space: nowrap; }
+    input[type=number], input[type=text] { padding: 4px 6px; border: 1px solid var(--line); border-radius: 6px;
+      background: var(--field); color: var(--fg); font: inherit; }
+    input[type=checkbox], input[type=radio] { accent-color: var(--accent); }
+    .radios { display: flex; gap: 14px; }
+    .radios label { margin: 0; justify-content: flex-start; gap: 5px; }
+    details { margin-top: 10px; border-top: 1px solid var(--line); padding-top: 8px; }
+    summary { cursor: pointer; color: var(--muted); }
+    details label { display: block; }
+    details input[type=text] { display: block; width: 100%; margin-top: 3px; }
+    .hint { color: var(--muted); font-size: 12px; margin: 2px 0 0; }
+  </style>
+</head>
+<body>
+  <h1>Reels mens Claude tænker</h1>
+  <div class="status" id="status"><span class="dot"></span><span id="status-text">Henter status …</span></div>
+
+  <label>Aktiv <input type="checkbox" id="enabled"></label>
+  <label>Åbn Reels når Claude har arbejdet <span class="num"><input type="number" id="openDelay" min="0" max="120" step="1"> sek.</span></label>
+  <label>Luk Reels når Claude har været færdig <span class="num"><input type="number" id="closeDelay" min="0" max="30" step="0.5"> sek.</span></label>
+  <div class="radios">
+    <span>Åbn som:</span>
+    <label><input type="radio" name="openIn" value="tab"> Fane</label>
+    <label><input type="radio" name="openIn" value="window"> Lille vindue</label>
+  </div>
+
+  <details>
+    <summary>Avanceret</summary>
+    <label>Adresse der åbnes <input type="text" id="url" spellcheck="false"></label>
+    <label>Ekstra CSS-selector for Claudes stop-knap <input type="text" id="stopSelector" spellcheck="false" placeholder='fx button[aria-label="Stop response"]'></label>
+    <p class="hint">Kun nødvendig hvis status ovenfor ikke skifter til “arbejder”, mens Claude svarer.</p>
+  </details>
+
+  <script src="popup.js"></script>
+</body>
+</html>

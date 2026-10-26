@@ -55,6 +55,7 @@ assets/js/data/events-*.js Historical events: [event, year, category, emoji, fun
 assets/js/data/prompts-*.js Krillion/Noillirk prompts with answers ordered from most to least common
 assets/js/data/prompt-meta.js Header photo + search hint per prompt (used to find a photo of each answer)
 assets/js/wiki.js          Photo loader: Wikipedia/Commons lookups, search, credits, caching
+claude-reels/              Separate Chrome extension, see below
 ```
 
 ## Adding content
@@ -63,3 +64,7 @@ assets/js/wiki.js          Photo loader: Wikipedia/Commons lookups, search, cred
 - **New prompt:** add an object to one of the `prompts-*.js` files. Order answers from most to least common; aliases go after `|`, for example `'United Kingdom|uk|britain'`. Optional `no` entries explain common wrong answers (for example spiders in "Name an insect").
 
 Progress is saved in the visitor's browser (`localStorage`) only.
+
+## Extra: Reels mens Claude tænker
+
+`claude-reels/` is a small, separate Chrome extension (not part of the website): it opens Instagram Reels while Claude on claude.ai is working and closes it again, back on the Claude tab, the moment Claude is done. Install steps and settings are in [claude-reels/README.md](claude-reels/README.md) (Danish).
